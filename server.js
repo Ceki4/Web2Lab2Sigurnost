@@ -8,7 +8,6 @@ app.use(express.urlencoded({ extended: true }));
 
 let xssUkljuceno = true;
 let sdeUkljuceno = true;
-let preskociXss = false;
 
 function escapeHtml(str) {
   return String(str)
@@ -96,13 +95,10 @@ app.get('/', (req, res) => {
     path: '/',
   });
 
-  const izvrsiXss = xssUkljuceno && !preskociXss;
-  preskociXss = false;
-
   const komentariHtml = komentari
     .map((k) => {
-      const autor = izvrsiXss ? k.autor : escapeHtml(k.autor);
-      const tekst = izvrsiXss ? k.tekst : escapeHtml(k.tekst);
+      const autor = xssUkljuceno ? k.autor : escapeHtml(k.autor);
+      const tekst = xssUkljuceno ? k.tekst : escapeHtml(k.tekst);
       return `<p><b>${autor}:</b> ${tekst}</p>`;
     })
     .join('');
@@ -217,9 +213,6 @@ app.get('/', (req, res) => {
 
 app.post('/toggle-xss', (req, res) => {
   xssUkljuceno = req.body.on === '1';
-  if (xssUkljuceno) {
-    komentari = [{ autor: 'ana', tekst: 'Pozdrav, ovo je obican komentar.' }];
-  }
   res.redirect('/');
 });
 
@@ -228,7 +221,7 @@ app.post('/toggle-sde', (req, res) => {
   if (!sdeUkljuceno) {
     zastitiPostojece();
   }
-  preskociXss = true;
+  komentari = [{ autor: 'ana', tekst: 'Pozdrav, ovo je obican komentar.' }];
   res.redirect('/');
 });
 
@@ -255,13 +248,13 @@ app.post('/korisnik', (req, res) => {
   if (korisnik && lozinka && oib && kartica) {
     korisnici.push(napraviKorisnika(korisnici.length + 1, korisnik, lozinka, oib, kartica));
   }
-  preskociXss = true;
+  komentari = [{ autor: 'ana', tekst: 'Pozdrav, ovo je obican komentar.' }];
   res.redirect('/');
 });
 
 app.post('/korisnici-reset', (req, res) => {
   korisnici = pocetniKorisnici();
-  preskociXss = true;
+  komentari = [{ autor: 'ana', tekst: 'Pozdrav, ovo je obican komentar.' }];
   res.redirect('/');
 });
 
